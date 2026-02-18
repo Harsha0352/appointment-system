@@ -1,16 +1,11 @@
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-conn = psycopg2.connect(
-    host="dpg-d4fvarali9vc73ct52kg-a.oregon-postgres.render.com",
-    database="elevenlabs",
-    user="voicedata_user",
-    password="Bm6rXzNRSHWugm8GUjaSqy1rHc4vzFCO",
-    sslmode="require"
-)
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL not set")
 
+conn = psycopg2.connect(DATABASE_URL, sslmode="require")
 cursor = conn.cursor(cursor_factory=RealDictCursor)
