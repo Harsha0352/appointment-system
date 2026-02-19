@@ -9,22 +9,25 @@ export default function Appointments() {
 
   useEffect(() => {
     let mounted = true
-    ;(async () => {
-      try {
-        const a = await fetchAppointments()
-        if (!mounted) return
-        setAppointments(a || [])
+      ; (async () => {
+        try {
+          console.log('Fetching appointments and users...')
+          // Parallel fetching optimization
+          const [a, u] = await Promise.all([fetchAppointments(), fetchUsers()])
 
-        const u = await fetchUsers()
-        if (!mounted) return
-        setUsers(u || [])
-      } catch (e) {
-        console.error(e)
-        if (mounted) setError(e.message || String(e))
-      } finally {
-        mounted && setLoading(false)
-      }
-    })()
+          console.log('Appointments fetched:', a)
+          console.log('Users fetched:', u)
+
+          if (!mounted) return
+          setAppointments(a || [])
+          setUsers(u || [])
+        } catch (e) {
+          console.error('Error fetching data:', e)
+          if (mounted) setError(e.message || String(e))
+        } finally {
+          mounted && setLoading(false)
+        }
+      })()
     return () => (mounted = false)
   }, [])
 
@@ -33,27 +36,54 @@ export default function Appointments() {
     return u ? u.name : `Member ${user_id}`
   }
 
+  // TARTA Table Logic
   return (
     <div>
-      <h1>Appointments</h1>
-      <div className="panel">
+      <div className="table-container">
+        <div className="table-header">
+          <div className="table-title">All Appointments</div>
+        </div>
+
         {loading ? (
-          <p>Loading...</p>
+          <div style={{ padding: '24px' }}>Loading appointments...</div>
         ) : error ? (
-          <div className="muted">Error loading appointments: {error}</div>
-        ) : appointments.length === 0 ? (
-          <p>No appointments found.</p>
+          <div style={{ padding: '24px', color: 'red' }}>Error: {error}</div>
         ) : (
-          <ul className="list">
-            {appointments.map((a) => (
-              <li key={a.id} className="list-item">
-                <div>
-                  <div className="item-title">{userFor(a.user_id)} — {a.purpose}</div>
-                  <div className="muted">{a.appointment_date} · {a.appointment_time} · <strong>{a.status}</strong></div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Member</th>
+                <th>Purpose</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map((a) => (
+                <tr key={a.id}>
+                  <td style={{ color: 'var(--primary)', fontWeight: 600 }}>APT{String(a.id).padStart(3, '0')}</td>
+                  <td>
+                    <div className="font-bold">{userFor(a.user_id)}</div>
+                    <div className="text-muted text-sm">ID: {a.user_id}</div>
+                  </td>
+                  <td>{a.purpose}</td>
+                  <td>
+                    <div className="font-bold">{a.appointment_date}</div>
+                    <div className="text-muted text-sm">{a.appointment_time}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${a.status === 'Booked' ? 'success' : 'danger'}`}>
+                      {a.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {appointments.length === 0 && (
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>No appointments found.</td></tr>
+              )}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

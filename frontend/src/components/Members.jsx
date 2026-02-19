@@ -17,27 +17,51 @@ export default function Members() {
 
   return (
     <div>
-      <h1>Members</h1>
-      <div className="panel">
-        <div className="panel-title">Members ({users.length})</div>
+      <div className="table-container">
+        <div className="table-header">
+          <div className="table-title">User List</div>
+        </div>
+
         {loading ? (
-          <p>Loading...</p>
+          <div style={{ padding: '24px' }}>Loading members...</div>
         ) : error ? (
-          <div className="muted">Error loading members: {error}</div>
-        ) : users.length === 0 ? (
-          <p>No members found.</p>
+          <div style={{ padding: '24px', color: 'red' }}>Error: {error}</div>
         ) : (
-          <ul className="list">
-            {users.map((u) => (
-              <li key={u.id} className="list-item">
-                <div className="avatar">{(u.name || 'U')[0]}</div>
-                <div>
-                  <div className="item-title">{u.name}</div>
-                  <div className="muted">Member ID: MEM{String(u.id).padStart(3, '0')} · DOB: {u.date_of_birth}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>Avatar</th>
+                <th>Name</th>
+                <th>Member ID</th>
+                <th>Date of Birth</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td style={{ width: '60px' }}>
+                    <div style={{
+                      width: '40px', height: '40px', borderRadius: '50%',
+                      background: 'var(--primary-light)', color: 'var(--primary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+                    }}>
+                      {(u.name || 'U')[0]}
+                    </div>
+                  </td>
+                  <td style={{ fontWeight: 600 }}>{u.name}</td>
+                  <td className="text-muted">MEM{String(u.id).padStart(3, '0')}</td>
+                  <td>{u.date_of_birth}</td>
+                  <td>
+                    <button className="badge neutral" style={{ border: 'none', cursor: 'pointer' }}>View Profile</button>
+                  </td>
+                </tr>
+              ))}
+              {users.length === 0 && (
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>No members found.</td></tr>
+              )}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
