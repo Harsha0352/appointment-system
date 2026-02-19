@@ -5,9 +5,12 @@ export default function Dashboard() {
   const [users, setUsers] = useState([])
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [longLoading, setLongLoading] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    const timer = setTimeout(() => setLongLoading(true), 3000)
+
     let mounted = true
       ; (async () => {
         try {
@@ -20,9 +23,13 @@ export default function Dashboard() {
           if (mounted) setError(e.message || String(e))
         } finally {
           mounted && setLoading(false)
+          clearTimeout(timer)
         }
       })()
-    return () => (mounted = false)
+    return () => {
+      mounted = false
+      clearTimeout(timer)
+    }
   }, [])
 
   const totalUsers = users.length
@@ -36,7 +43,18 @@ export default function Dashboard() {
     return u ? u.name : 'Unknown'
   }
 
-  if (loading) return <div className="text-muted">Loading dashboard...</div>
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div className="text-muted" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Loading dashboard...</div>
+        {longLoading && (
+          <div style={{ color: '#eab308', maxWidth: '400px', margin: '0 auto' }}>
+            The server is waking up from sleep mode (Free Tier). This may take up to 30-60 seconds. Please wait...
+          </div>
+        )}
+      </div>
+    )
+  }
   if (error) return <div className="badge danger">Error: {error}</div>
 
   return (

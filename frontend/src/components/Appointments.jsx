@@ -5,9 +5,12 @@ export default function Appointments() {
   const [appointments, setAppointments] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [longLoading, setLongLoading] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    const timer = setTimeout(() => setLongLoading(true), 3000)
+
     let mounted = true
       ; (async () => {
         try {
@@ -26,9 +29,13 @@ export default function Appointments() {
           if (mounted) setError(e.message || String(e))
         } finally {
           mounted && setLoading(false)
+          clearTimeout(timer)
         }
       })()
-    return () => (mounted = false)
+    return () => {
+      mounted = false
+      clearTimeout(timer)
+    }
   }, [])
 
   function userFor(user_id) {
@@ -45,7 +52,14 @@ export default function Appointments() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '24px' }}>Loading appointments...</div>
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div className="text-muted" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Loading appointments...</div>
+            {longLoading && (
+              <div style={{ color: '#eab308', maxWidth: '400px', margin: '0 auto' }}>
+                The server is waking up from sleep mode (Free Tier). This may take up to 30-60 seconds. Please wait...
+              </div>
+            )}
+          </div>
         ) : error ? (
           <div style={{ padding: '24px', color: 'red' }}>Error: {error}</div>
         ) : (

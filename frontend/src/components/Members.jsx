@@ -4,15 +4,30 @@ import { fetchUsers } from '../api'
 export default function Members() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [longLoading, setLongLoading] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    const timer = setTimeout(() => setLongLoading(true), 3000)
     let mounted = true
-    fetchUsers()
-      .then((u) => { if (mounted) setUsers(u || []) })
-      .catch((e) => { console.error(e); if (mounted) setError(e.message || String(e)) })
-      .finally(() => mounted && setLoading(false))
-    return () => (mounted = false)
+
+      ; (async () => {
+        try {
+          const u = await fetchUsers()
+          if (mounted) setUsers(u || [])
+        } catch (e) {
+          console.error(e)
+          if (mounted) setError(e.message || String(e))
+        } finally {
+          if (mounted) setLoading(false)
+          clearTimeout(timer)
+        }
+      })()
+
+    return () => {
+      mounted = false
+      clearTimeout(timer)
+    }
   }, [])
 
   return (
@@ -23,7 +38,14 @@ export default function Members() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '24px' }}>Loading members...</div>
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div className="text-muted" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Loading members...</div>
+            {longLoading && (
+              <div style={{ color: '#eab308', maxWidth: '400px', margin: '0 auto' }}>
+                The server is waking up from sleep mode (Free Tier). This may take up to 30-60 seconds. Please wait...
+              </div>
+            )}
+          </div>
         ) : error ? (
           <div style={{ padding: '24px', color: 'red' }}>Error: {error}</div>
         ) : (
